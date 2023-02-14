@@ -21,7 +21,6 @@ params = {
     "user": "hajun",
     "password": secrets['password'],
     "apikey": secrets['apikey']
-
 }
 url = params["url"]
 
@@ -39,22 +38,32 @@ url = f"{url}?lat={lat}&lon={lon}&exclude=current,minutely,hourly,alerts&appid={
 response = requests.get(url)
 data = json.loads(response.text)
 
+# client and db 선언
 client = MongoClient(mongo_path)
 db = client.Cluster0
 
 insert_list = []
+# incremental update
 for d in data["daily"]:
     temp_dict = dict()
     date = datetime.fromtimestamp(d["dt"]).strftime('%Y-%m-%d')
     temp = d["temp"]["day"]
     min_temp = d["temp"]["min"]
     max_temp = d["temp"]["max"]
-    # 그 날의 날씨를 추가
-    temp_dict["date"] = date
-    temp_dict["temp"] = temp
-    temp_dict["min_temp"] = min_temp
-    temp_dict["max_temp"] = max_temp
-    insert_list.append(temp_dict)
+
+    # Check if document with same date already exists
+    existing_doc = db.users.find_one({"date": date})
+    if existing_doc:
+        print(f"Document with date {date} already exists. Skipping...")
+        continue
+    else:
+        # 그 날의 날씨를 추가
+        temp_dict["date"] = date
+        temp_dict["temp"] = temp
+        temp_dict["min_temp"] = min_temp
+        temp_dict["max_temp"] = max_temp
+        insert_list.append(temp_dict)
+        print(f"date {date} not exists, can insert")
 
 
 for elem in insert_list:
