@@ -9,13 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Decrypt API secrets
-        env:
-          MONGODB_PASS_WD: ${{ secrets.MONGODB_PASS_WD }}
-          WEATHER_APIKEY: ${{ secrets.WEATHER_APIKEY }}
-        run: |
-          echo "{\"password\": \"MONGODB_PASS_WD\", \"apikey\": \"WEATHER_APIKEY\"}" | base64 --decode > ./secrets.json
-
     - name: 1. 파일 목록 출력
       run: ls
     - name: 2. 설치되어 있는 패키지 확인
